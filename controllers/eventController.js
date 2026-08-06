@@ -1,16 +1,138 @@
-const mysql = require("mysql2")
-const dotenv = require("dotenv")
+const eventService = require("../services/eventService")
 
-dotenv.config()
+async function createEvent(req,res){
+    try{
+        const event = await eventService.createEvent(req.body, req.user.id)//req.user =1 ajay ajay@gmail.com admin
 
-const db = mysql.createPool({
-    host:process.env.DB_HOST,
-    user:process.env.DB_USER,
-    password:process.env.DB_PASSWORD,
-    database:process.env.DB_NAME,
-    waitForConnections:true,
-    connectionLimit:10,
-    queueLimit:0
-});
+        res.status(201).json({
+            success:true,
+            message:"event created successfully",
+            data:event
+        });
 
-module.exports = db.promise()
+    }
+    catch(error){
+        res.status(500).json({
+            success:false,
+            message:error.message
+        })
+    }
+}
+
+async function getAllEvents(req,res){
+    try{
+        const events = await eventService.getAllEvents()
+
+        res.status(200).json({
+            success:true,
+            message:"events fetched successfully",
+            data:events
+        })
+    }
+    catch(error){
+        res.status(500).json({
+            success:false,
+            message:error.message
+        })
+    }
+}
+
+async function getEventById(req,res){
+    try{
+        const {id} = req.params;
+        const event = await eventService.getEventById(id)
+
+        if(!event){
+            return res.status(404).json({
+                success:false,
+                message:"event not found"
+            })
+        }
+        res.status(200).json({
+            success:true,
+            data:event
+        })
+    }
+    catch(error){
+        res.status(500).json({
+            success:false,
+            message:error.message
+        })
+    }
+}
+
+async function updateEvent(req, res) {
+
+    try {
+
+        const { id } = req.params;
+
+        const updatedEvent = await eventService.updateEvent(id, req.body);
+
+        if (!updatedEvent) {
+
+            return res.status(404).json({
+                success: false,
+                message: "Event Not Found"
+            });
+
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Event Updated Successfully",
+            data: updatedEvent
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+
+}
+
+// Delete Event
+async function deleteEvent(req, res) {
+
+    try {
+
+        const { id } = req.params;
+
+        const deleted = await eventService.deleteEvent(id);
+
+        if (!deleted) {
+
+            return res.status(404).json({
+                success: false,
+                message: "Event Not Found"
+            });
+
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Event Deleted Successfully"
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+
+}
+
+module.exports = {
+    createEvent,
+    getAllEvents,
+    getEventById,
+    updateEvent,
+    deleteEvent
+};
